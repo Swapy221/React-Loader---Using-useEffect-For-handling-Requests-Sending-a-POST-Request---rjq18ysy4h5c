@@ -2,24 +2,7 @@ import React from "react";
 import "../styles/App.css";
 import Loader from "./Loader";
 
-const [showLoader, setShowLoader] = React.useState(false);
-
-const handleOnClick = () => {
-   // Show loader when button clicked
-   setShowLoader(true);
-
-   // Fetch user data after 2 seconds
-   setTimeout(() => {
-      fetch(`${BASE_URL}/${userId}`)
-         .then((response) => response.json())
-         .then((data) => {
-            setUserData(data);
-            setShowLoader(false);
-         });
-   }, 2000);
-};
-
-
+const BASE_URL = "https://content.newtonschool.co/v1/pr/main/users";
 
 const LoadingStatus = {
   NOT_STARTED: "NOT_STARTED",
@@ -28,7 +11,6 @@ const LoadingStatus = {
 };
 
 const App = () => {
-  const BASE_URL = "https://content.newtonschool.co/v1/pr/main/users";
   const [userId, setUserId] = React.useState(1);
   const [isLoading, setIsLoading] = React.useState(LoadingStatus.NOT_STARTED);
   const [userData, setUserData] = React.useState({
@@ -36,10 +18,27 @@ const App = () => {
     email: "",
     name: "",
     phone: "",
-    webiste: "",
+    website: "", // Corrected the typo here from 'webiste' to 'website'
   });
 
-  const handleOnClick = () => {};
+  const handleOnClick = () => {
+    // Show loader when button clicked
+    setIsLoading(LoadingStatus.IN_PROGRESS);
+
+    // Fetch user data after 2 seconds
+    setTimeout(() => {
+      fetch(`${BASE_URL}/${userId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          setUserData(data);
+          setIsLoading(LoadingStatus.SUCCESS);
+        })
+        .catch((error) => {
+          setIsLoading(LoadingStatus.NOT_STARTED);
+          console.error("Error fetching user data:", error);
+        });
+    }, 2000);
+  };
 
   const onChangeHandler = (event) => {
     setUserId(event.target.value);
@@ -54,25 +53,27 @@ const App = () => {
         onChange={onChangeHandler}
         id="input"
         min={1}
-        max={10}
+        max={100} // Corrected the max value to 100
       />
       <button id="btn" onClick={handleOnClick}>
         Get User
       </button>
 
-    <div id="data">
-   {showLoader ? (
-      <Loader />
-   ) : (
-      <>
-         <h1>{userData.name}</h1>
-         <h4 id="id">{userData.id}</h4>
-         <h4 id="email">{userData.email}</h4>
-         <h4 id="phone">{userData.phone}</h4>
-         <h4 id="website">{userData.website}</h4>
-      </>
-   )}
-</div>
+      <div id="data">
+        {isLoading === LoadingStatus.IN_PROGRESS ? (
+          <Loader />
+        ) : isLoading === LoadingStatus.SUCCESS ? (
+          <>
+            <h1>{userData.name}</h1>
+            <h4 id="id">{userData.id}</h4>
+            <h4 id="email">{userData.email}</h4>
+            <h4 id="phone">{userData.phone}</h4>
+            <h4 id="website">{userData.website}</h4>
+          </>
+        ) : (
+          <h1>Click on the button to get the user</h1>
+        )}
+      </div>
     </div>
   );
 };
